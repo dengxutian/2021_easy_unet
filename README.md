@@ -1,2 +1,3 @@
-# unet
-U-net; Pytorch.
+# U-Net
+
+Simple U-Net based on Pytorch.
