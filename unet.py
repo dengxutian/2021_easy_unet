@@ -1,4 +1,4 @@
-# @Time : 2021/8/13 16:48
+# @Time : 2021/9/4 16:27
 # @Author : Deng Xutian
 # @Email : dengxutian@126.com
 
@@ -6,18 +6,18 @@ import torch
 import torch.nn as nn
 
 
-class unet(nn.Module):
+class UNet(nn.Module):
     def __init__(self, in_channel, out_channel):
         super().__init__()
-        self.in_conv_layers = double_conv_layers(in_channel, 64)
-        self.down1 = down(64, 128)
-        self.down2 = down(128, 256)
-        self.down3 = down(256, 512)
-        self.down4 = down(512, 512)
-        self.up1 = up(1024, 256)
-        self.up2 = up(512, 128)
-        self.up3 = up(256, 64)
-        self.up4 = up(128, 64)
+        self.in_conv_layers = DoubleConvLayers(in_channel, 64)
+        self.down1 = Down(64, 128)
+        self.down2 = Down(128, 256)
+        self.down3 = Down(256, 512)
+        self.down4 = Down(512, 512)
+        self.up1 = Up(1024, 256)
+        self.up2 = Up(512, 128)
+        self.up3 = Up(256, 64)
+        self.up4 = Up(128, 64)
         self.out_conv_layers = nn.Conv2d(in_channels=64, out_channels=out_channel, kernel_size=1)
 
     def forward(self, x):
@@ -45,7 +45,7 @@ class unet(nn.Module):
                 m.bias.data.zero_()
 
 
-class double_conv_layers(nn.Module):
+class DoubleConvLayers(nn.Module):
     def __init__(self, in_channel, out_channel):
         super().__init__()
         self.conv_layers = nn.Sequential(
@@ -61,32 +61,32 @@ class double_conv_layers(nn.Module):
         return self.conv_layers(x)
 
 
-class down(nn.Module):
+class Down(nn.Module):
     def __init__(self, in_channel, out_channel):
         super().__init__()
-        self.maxpool_conv = nn.Sequential(
+        self.MaxPoolConv = nn.Sequential(
             nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
-            double_conv_layers(in_channel, out_channel)
+            DoubleConvLayers(in_channel, out_channel)
         )
 
     def forward(self, x):
-        return self.maxpool_conv(x)
+        return self.MaxPoolConv(x)
 
 
-class up(nn.Module):
+class Up(nn.Module):
     def __init__(self, in_channel, out_channel):
         super().__init__()
         self.upsample = nn.Upsample(scale_factor=2)
-        self.conv_layers = double_conv_layers(in_channel, out_channel)
+        self.conv_layers = DoubleConvLayers(in_channel, out_channel)
 
     def forward(self, x1, x2):
         x1 = self.upsample(x1)
         return self.conv_layers(torch.cat([x1, x2], dim=1))
 
 
-if __name__ == '__main__':
-    net = unet(in_channel=3, out_channel=1)
-    x = torch.rand(1, 3, 224, 224)
-    y = net(x)
-    print(y)
-    print('Finish!')
+# if __name__ == '__main__':
+#     net = UNet(in_channel=1, out_channel=1)
+#     x = torch.rand(1, 1, 224, 224)
+#     y = net(x)
+#     print(y)
+#     print('Finish!')
